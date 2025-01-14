@@ -1,27 +1,43 @@
-import { useState } from 'react'
-const CustomButton = ( {message, children}) => {
-    return (
-        <button onClick={() => alert(message)}>
-            {children}
-        </button>
-    )
-}
+import { useState, useEffect } from 'react';
+import Description from '../Description/Description.jsx';
+import Option from '../Option/Option.jsx';
+import Feedback from '../Feedback/Feedback.jsx';
+import Notification from '../Notification/Notification.jsx';
+
 
 export default function App() {
-
-    const [clicks, setClicks] = useState(0);
-
-    const handleClick = () => {
-        setClicks(clicks + 1);
-    }
-    return (
-        <>
-            <button onClick={handleClick}> Change me {clicks}</button>
-            <CustomButton message="Playing music!">
-                Play some music
-            </CustomButton>
-            <CustomButton message="Uploading your data!">
-                Uploud data
-            </CustomButton>
-        </>
-) };
+    const [feedback, setFeedback] = useState(() => {
+        const saveFeedback = localStorage.getItem('feedback');
+        if(saveFeedback != null) {
+            return JSON.parse(saveFeedback);
+        }
+        return {  
+            good: 0,
+            neutral: 0, 
+            bad: 0
+        }
+    });
+    const updateFeedback = feedbackType => {
+        setFeedback((prevFeedback)=> ({
+            ...feedback,
+            [feedbackType]:prevFeedback[feedbackType] + 1,
+        }));
+    };
+    
+    const totalFeedback = feedback.good + feedback.neutral + feedback.bad;    
+    const handleReset = () => {
+        setFeedback({
+            good: 0,
+            neutral: 0, 
+            bad: 0
+        })
+    };
+    useEffect(() => {
+        localStorage.setItem('feedback', JSON.stringify(feedback));
+    }, [feedback]);
+    return <>
+            <Description />
+            <Option updateFeedback={updateFeedback} totalFeedback={totalFeedback}handleReset={handleReset}/>
+            {totalFeedback > 0 ? <Feedback feedback={feedback} totalFeedback={totalFeedback}/> : <Notification />} 
+        </>;
+};
